@@ -1,0 +1,177 @@
+---
+title: "R Data Estimation and simulation"
+output: html_notebook
+---
+# Monte Carlo: Function estimation
+```{r}
+library(rmarkdown)
+this.dir <- paste(rstudioapi::getSourceEditorContext()$path,"/..")
+setwd(this.dir)
+
+```
+
+# Problem1
+**Pi estimation**
+
+The area of the square is 1, and the area of the circle is π/4 , so the probability we get from the simulation should multiply 4 to get the final π value
+```{r}
+x=runif(10000)
+y=runif(10000)
+#draw 10000 points radius 0~1
+#10000 points can be presented as a 0.25 circle
+
+#calculate the distance of these points from the circle center (0.5,0.5)
+distance <- sqrt((x-0.5)^2+(y-0.5)^2)
+#Calculate the ratio of the points inside the circle among all the points
+ratio <- length(which(distance<=0.5))/length(distance)
+#After multiplying the ratio by 4, we get the estimate value of π
+estimate_pi <- ratio*4
+print(estimate_pi)
+plot(x,y)
+
+```
+# Problem2
+Consider a satellite whose work is based on a certain block A. This block has an independent
+backup B. The satellite performs its task until both A and B fail. The lifetimes of A and B
+are exponentially distributed with the mean lifetime of 10 years.
+
+**This is our expoential function(we want to estimate)**
+
+*f = (0.2)*exp(-0.1*t)-(0.2)*exp(-0.2*t)*
+
+ integrate(f,15,Inf) = 0.3965
+ 
+ P(T>15) is 0.3965
+
+
+
+```{r}
+# rexp(1,0.1), rexp(1,0.1)  lifetime of A and B (get max)
+calculateProbabilityExpectedValue <- function(n){
+y <- replicate(n, max(rexp(1,0.1), rexp(1,0.1)))
+tempEV<- mean(y)# estimate value
+tempP <- mean(abs(y) > 15)# estimate probability (> 15 years)
+return(c(tempEV, tempP))
+}
+# try different sample size
+calculateProbabilityExpectedValue(1000)
+calculateProbabilityExpectedValue(100000)
+
+```
+# Maximum Likelihood Estimator (Parameters Estimator)
+Suppose the lifetime, in years, of an electronic component can be modeled by a continuous
+random variable with probability density function
+
+**The function we want to estimate**
+
+*f(x) = theta/x^(theta+1), x>=1 else 0***
+
+objective function
+
+*maximize the function with theta*
+
+arg theta max(f)
+
+f = Pi(i=1~n) theta/xi^(theta+1)
+
+1. get likelihood function
+
+log(f) = nlog(theta) - (theta+1) sum(1~n)log(xi)
+
+2. differential log(f)
+
+dlog(f)/d(theta) = 0
+
+n/thta - sum(1~n)log(xi) = 0
+
+3. get theta
+
+theta = n/sum(log(xi))
+
+```{r message=FALSE, warning=FALSE, paged.print=TRUE}
+#defind function
+#f(x) = t/x^(t+1)
+f<-function(x,t)
+{ 
+  return(t/x^(t+1))
+}
+#defind theta
+theta<-function(x){
+  logX = log(x,base = exp(1))
+  #theta = n/sum(log(xi))
+  return(length(x)/sum(logX))
+}
+#define negative function
+#minimize negative function = maximize function
+neg.likelihood<-function(x,par){
+  #NaN ("Not a Number") means 0/0 log(neg)
+  result<-sum(log(f(x,par)))
+  return(-result)}
+
+input<-c(21.72,14.65,50.42,28.78,11.23)
+
+
+#get the result from optim 
+
+result <-optim(par=1, fn=neg.likelihood, method ="BFGS",hessian=TRUE, x=input)
+#est = result$par
+
+#get se from hessian
+se = sqrt(solve(result$hessian)[1][1])
+#get z(1-alpha/2)
+z = qnorm(0.975)
+#get CI
+#ext-z*se~ext+z*se
+ci = c(est-z*se,est+z*se)
+
+#theta 0.3233874
+#get the result by calculator(step 1 2 3)
+print(theta(input))
+#get the result by estimation
+print(result$par)
+#get CI
+print(ci)
+
+#when we don't know how to solve equation
+#use optim
+```
+
+
+# How to estimate whole sample
+we use bootstrap the simulate the sample
+
+
+```{r}
+gpa=read.csv(file="gpa.csv", header = TRUE, sep=',')
+plot(gpa$gpa,gpa$act, xlab="GPA", ylab = "ACT", pch=20)
+
+#find the population correlation(p) between GPA and ACT
+p=cor(gpa$gpa,gpa$act) 
+
+#function to find correlation between GPA and ACT 
+correlation.npar=function(x, indices)
+{
+  result=cor(x[indices,1], x[indices,2])
+  #print(result)
+  return(result)
+}
+
+
+#take len(gpa) data everytime (put back every draw), and sample R times(1000)
+#find the point estimate, bias(to origin data) and standard error(in R sample)
+correlation.npar.boot = boot(gpa, correlation.npar, R = 999, sim = "ordinary", stype = "i")
+
+
+print(paste("Point Estimate of correlation between GPA and ACT Scores is:", p))
+#Percentile
+#the correlation CI
+#boot.ci(correlation.npar.boot,conf=0.95,type="perc")
+sort(correlation.npar.boot$t)[c(25, 975)]
+
+```
+
+
+
+
+
+
