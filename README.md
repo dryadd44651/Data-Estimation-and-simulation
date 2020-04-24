@@ -7,13 +7,13 @@ This Project will show you how to estimate a function and parameters in the prob
 - Get the sample points in rectangle 2x2
 - Get the circle in the rectangle with radius 1
 - Pi = points in circle/points in rectangle
-## satellite lifetime probability estimation
+## Satellite lifetime probability estimation
 - Get random generation for the exponential distribution to get the sample lifetime
 - To make statistic and get the information we want
 
 # Maximum Likelihood Estimator (Parameters Estimator)
 
-##The normal way to find the parameter
+## The normal way to find the parameter
 - Get Sample
 - Get objective function by multiply probability density function
 - Get likelihood function
