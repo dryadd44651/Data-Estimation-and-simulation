@@ -41,7 +41,8 @@ We can easily use Maximum Likelihood Estimator to find out the parameters
 >- var
 >- CI
 
-# Parameter VS Non-parameter Bootstrap
+# Parametric VS Non-parameter Bootstrap
 - key different: How to generate the bootstrap sample data
 >- From Parameter(known before the test) or Input data
+>- Parametric Bootstrap: better accuracy, lower cost
 
