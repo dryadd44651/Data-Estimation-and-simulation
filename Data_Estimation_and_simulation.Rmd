@@ -114,7 +114,7 @@ input<-c(21.72,14.65,50.42,28.78,11.23)
 #get the result from optim 
 
 result <-optim(par=1, fn=neg.likelihood, method ="BFGS",hessian=TRUE, x=input)
-#est = result$par
+est = result$par
 
 #get se from hessian
 se = sqrt(solve(result$hessian)[1][1])
@@ -128,7 +128,7 @@ ci = c(est-z*se,est+z*se)
 #get the result by calculator(step 1 2 3)
 print(theta(input))
 #get the result by estimation
-print(result$par)
+print(est)
 #get CI
 print(ci)
 
@@ -138,10 +138,11 @@ print(ci)
 
 
 # How to estimate whole sample
-we use bootstrap the simulate the sample
+we use non parameter bootstrap the simulate the sample
 
 
 ```{r}
+library(boot)
 gpa=read.csv(file="gpa.csv", header = TRUE, sep=',')
 plot(gpa$gpa,gpa$act, xlab="GPA", ylab = "ACT", pch=20)
 
@@ -171,7 +172,55 @@ sort(correlation.npar.boot$t)[c(25, 975)]
 ```
 
 
+# Parametric boostrap
+## We generate the sample data from **Parametric "thetahat"** rather than input data x
+*tmpdata = rbinom(n*nboot, binomSize, thetahat)*
+Most of the time the Parametric bootstrap will be better(reduce randomity and running time).
+So, if possible use Parametric bootstrap.
+```{r}
+# Data from binomial(15, θ) for an unknown θ
+# explain: toss the coin 15 times
+# 3,5,7,9,11,13 times are head, get the  probability θ
+x = c(3, 5, 7, 9, 11, 13)
+binomSize = 15 # known size of binomial
+n = length(x) # sample size
+thetahat = mean(x)/binomSize # MLE for θ ground true θ
 
+nboot = 5000 # number of bootstrap samples to use
+# nboot parametric samples of size n; organize in a matrix
+tmpdata = rbinom(n*nboot, binomSize, thetahat)
+bootstrapsample = matrix(tmpdata, nrow=n, ncol=nboot)
+# Compute bootstrap means thetahat* and differences delta*
+thetahatstar = colMeans(bootstrapsample)/binomSize
+deltastar = thetahatstar - thetahat
+# Find quantiles and make the bootstrap confidence interval
+d1 = quantile(deltastar, c(.1,.9))
+```
+
+## Non Parametric boostrap with same question
+### we generate the data with **input data "x"**
+*tmpdata = x[sample.int(6, nboot*n, replace = TRUE)]*
+
+```{r}
+# Data from binomial(15, θ) for an unknown θ
+# explain: toss the coin 15 times
+# 3,5,7,9,11,13 times are head, get the  probability θ
+x = c(3, 5, 7, 9, 11, 13)
+binomSize = 15 # known size of binomial
+n = length(x) # sample size
+thetahat = mean(x)/binomSize # MLE for θ ground true θ
+
+nboot = 5000 # number of bootstrap samples to use
+# nboot parametric samples of size n; organize in a matrix
+tmpdata = x[sample.int(6, nboot*n, replace = TRUE)]
+
+bootstrapsample = matrix(tmpdata, nrow=n, ncol=nboot)
+# Compute bootstrap means thetahat* and differences delta*
+thetahatstar = colMeans(bootstrapsample)/binomSize
+deltastar = thetahatstar - thetahat
+# Find quantiles and make the bootstrap confidence interval
+d2 = quantile(deltastar, c(.1,.9))
+```
 
 
 
