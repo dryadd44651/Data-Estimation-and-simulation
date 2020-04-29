@@ -12,22 +12,29 @@ setwd(this.dir)
 
 # Problem1
 **Pi estimation**
-
-The area of the square is 1, and the area of the circle is π/4 , so the probability we get from the simulation should multiply 4 to get the final π value
+```
+The area of the square is 4
+area = r*r*π
+4 = (-1~1)*(-1~1)
+4*ratio = 1*1*π
+π = 4*ratio
+```
 ```{r}
-x=runif(10000)
-y=runif(10000)
+#library("plotrix")
+
+x=runif(10000,-1, 1)
+y=runif(10000,-1, https://github.com/dryadd44651/Data-Estimation-and-simulation1)
 #draw 10000 points radius 0~1
 #10000 points can be presented as a 0.25 circle
-
-#calculate the distance of these points from the circle center (0.5,0.5)
-distance <- sqrt((x-0.5)^2+(y-0.5)^2)
+#calculate the distance of these points from the circle center (0,0)
+distance <- sqrt((x)^2+(y)^2)
 #Calculate the ratio of the points inside the circle among all the points
-ratio <- length(which(distance<=0.5))/length(distance)
+ratio <- length(which(distance<=1))/length(distance)
 #After multiplying the ratio by 4, we get the estimate value of π
 estimate_pi <- ratio*4
 print(estimate_pi)
-plot(x,y)
+plot(x,y,asp = 1,main = "MC",ylim=c(-1,1),xlim=c(-1,1))#asp keep x:y ratio
+draw.circle(0,0,radius = 1, nv = 100,col = rgb(1,0,0),border =rgb(0,1,0),lwd = 1) 
 
 ```
 # Problem2
